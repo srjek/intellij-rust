@@ -58,6 +58,12 @@ val TomlKey.isDependencyKey: Boolean
         return text == "dependencies" || text == "dev-dependencies" || text == "build-dependencies"
     }
 
+val TomlKey.isFeaturesKey: Boolean
+    get() {
+        val text = text
+        return text == "features"
+    }
+
 val TomlTableHeader.isDependencyListHeader: Boolean
     get() = names.lastOrNull()?.isDependencyKey == true
 

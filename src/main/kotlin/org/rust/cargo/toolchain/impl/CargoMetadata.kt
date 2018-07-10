@@ -207,6 +207,7 @@ object CargoMetadata {
          * List of dependency info
          *
          * Contains additional info compared with [dependencies] like custom package name.
+         * Can be null for old cargo version
          */
         val deps: List<Dep>?,
 
@@ -291,11 +292,10 @@ object CargoMetadata {
         )
     }
 
-    private fun Package.clean(
-        fs: LocalFileSystem,
-        isWorkspaceMember: Boolean,
-        variables: TargetVariables,
-        features: List<CargoWorkspace.Feature>
+    private fun Package.clean(fs: LocalFileSystem,
+                              isWorkspaceMember: Boolean,
+                              variables: TargetVariables,
+                              features: List<CargoWorkspace.Feature>
     ): CargoWorkspaceData.Package? {
         val root = checkNotNull(fs.refreshAndFindFileByPath(PathUtil.getParentPath(manifest_path))?.canonicalFile) {
             "`cargo metadata` reported a package which does not exist at `$manifest_path`"
