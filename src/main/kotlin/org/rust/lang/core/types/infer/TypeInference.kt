@@ -198,8 +198,10 @@ class RsInferenceContext(
                     }
                     null to element.expr
                 }
-                else -> error("Type inference is not implemented for PSI element of type " +
-                    "`${element.javaClass}` that implement `RsInferenceContextOwner`")
+                else -> error(
+                    "Type inference is not implemented for PSI element of type " +
+                        "`${element.javaClass}` that implement `RsInferenceContextOwner`"
+                )
             }
             if (expr != null) {
                 RsTypeInferenceWalker(this, retTy ?: TyUnknown).inferLambdaBody(expr)
@@ -363,7 +365,7 @@ class RsInferenceContext(
     }
 
     fun canCombineTypes(ty1: Ty, ty2: Ty): Boolean {
-        return probe { combineTypesResolved(shallowResolve(ty1), shallowResolve(ty2)).isOk }
+        return probe { combineTypes(ty1, ty2).isOk }
     }
 
     fun combineTypesIfOk(ty1: Ty, ty2: Ty): Boolean {
@@ -557,7 +559,10 @@ class RsInferenceContext(
         optNormalizeProjectionTypeResolved(resolveTypeVarsIfPossible(projectionTy) as TyProjection, recursionDepth)
 
     /** See [optNormalizeProjectionType] */
-    private fun optNormalizeProjectionTypeResolved(projectionTy: TyProjection, recursionDepth: Int): TyWithObligations<Ty>? {
+    private fun optNormalizeProjectionTypeResolved(
+        projectionTy: TyProjection,
+        recursionDepth: Int
+    ): TyWithObligations<Ty>? {
         if (projectionTy.type is TyInfer.TyVar) return null
 
         return when (val cacheResult = projectionCache.tryStart(projectionTy)) {

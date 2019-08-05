@@ -92,7 +92,7 @@ fun resolvePath(path: RsPath, lookup: ImplLookup? = null): List<BoundElement<RsE
     }
 }
 
-fun <T: RsElement> instantiatePathGenerics(
+fun <T : RsElement> instantiatePathGenerics(
     path: RsPath,
     resolved: BoundElement<T>
 ): BoundElement<T> {
