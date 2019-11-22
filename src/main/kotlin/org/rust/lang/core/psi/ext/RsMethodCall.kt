@@ -8,7 +8,7 @@ package org.rust.lang.core.psi.ext
 import com.intellij.lang.ASTNode
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
-import org.rust.lang.core.psi.RsExpr
+import org.rust.lang.core.psi.RsConstExpr
 import org.rust.lang.core.psi.RsLifetime
 import org.rust.lang.core.psi.RsMethodCall
 import org.rust.lang.core.psi.RsTypeReference
@@ -19,7 +19,7 @@ val RsMethodCall.lifetimeArguments: List<RsLifetime> get() = typeArgumentList?.l
 
 val RsMethodCall.typeArguments: List<RsTypeReference> get() = typeArgumentList?.typeReferenceList.orEmpty()
 
-val RsMethodCall.constArguments: List<RsExpr> get() = typeArgumentList?.exprList.orEmpty()
+val RsMethodCall.constArguments: List<RsConstExpr> get() = typeArgumentList?.constExprList.orEmpty()
 
 val RsMethodCall.textRangeWithoutValueArguments: TextRange
     get() = TextRange(startOffset, typeArgumentList?.endOffset ?: identifier.endOffset)

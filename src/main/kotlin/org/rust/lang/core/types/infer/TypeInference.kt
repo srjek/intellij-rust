@@ -10,6 +10,8 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapiext.Testmark
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
+import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.TestOnly
 import org.rust.lang.core.psi.*
 import org.rust.lang.core.psi.ext.*
@@ -171,6 +173,19 @@ class RsInferenceContext(
             val (retTy, expr) = when (element) {
                 is RsConstant -> element.typeReference?.type to element.expr
                 is RsArrayType -> TyInteger.USize to element.expr
+                is RsConstExpr -> {
+                    val constArguments = element.parentOfType<RsTypeArgumentList>()?.constExprList.orEmpty()
+                    val currIdx = constArguments.indexOf(element)
+                    val constType = if (currIdx != -1) {
+                        val decl = PsiTreeUtil.getParentOfType(element, RsPath::class.java, RsMethodCall::class.java)
+                            ?.reference?.resolve() as? RsGenericDeclaration
+                        val constParameter = decl?.constParameters?.getOrNull(currIdx)
+                        constParameter?.typeReference?.type ?: TyUnknown
+                    } else {
+                        TyUnknown
+                    }
+                    constType to element.expr
+                }
                 is RsVariantDiscriminant -> {
                     val enum = element.ancestorStrict<RsEnumItem>()
                     enum?.reprType to element.expr

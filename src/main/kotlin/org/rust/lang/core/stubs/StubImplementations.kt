@@ -36,7 +36,7 @@ class RsFileStub : PsiFileStubImpl<RsFile> {
 
     object Type : IStubFileElementType<RsFileStub>(RsLanguage) {
         // Bump this number if Stub structure changes
-        override fun getStubVersion(): Int = 185
+        override fun getStubVersion(): Int = 186
 
         override fun getBuilder(): StubBuilder = object : DefaultStubBuilder() {
             override fun createStubForFile(file: PsiFile): StubElement<*> = RsFileStub(file as RsFile)
@@ -134,6 +134,7 @@ fun factory(name: String): RsStubElementType<*, *> = when (name) {
     "LIFETIME_PARAMETER" -> RsLifetimeParameterStub.Type
     "FOR_LIFETIMES" -> RsPlaceholderStub.Type("FOR_LIFETIMES", ::RsForLifetimesImpl)
     "TYPE_ARGUMENT_LIST" -> RsPlaceholderStub.Type("TYPE_ARGUMENT_LIST", ::RsTypeArgumentListImpl)
+    "CONST_EXPR" -> RsPlaceholderStub.Type("CONST_EXPR", ::RsConstExprImpl)
     "ASSOC_TYPE_BINDING" -> RsAssocTypeBindingStub.Type
 
     "TYPE_PARAM_BOUNDS" -> RsPlaceholderStub.Type("TYPE_PARAM_BOUNDS", ::RsTypeParamBoundsImpl)

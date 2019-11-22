@@ -84,7 +84,7 @@ val RsPath.lifetimeArguments: List<RsLifetime> get() = typeArgumentList?.lifetim
 
 val RsPath.typeArguments: List<RsTypeReference> get() = typeArgumentList?.typeReferenceList.orEmpty()
 
-val RsPath.constArguments: List<RsExpr> get() = typeArgumentList?.exprList.orEmpty()
+val RsPath.constArguments: List<RsConstExpr> get() = typeArgumentList?.constExprList.orEmpty()
 
 abstract class RsPathImplMixin : RsStubbedElementImpl<RsPathStub>,
                                  RsPath {

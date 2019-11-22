@@ -206,8 +206,16 @@ ColonTypeArgumentList ::= &'::' TypeArgumentListImpl { elementType = TypeArgumen
 
 private TypeArgumentListImpl ::= '::'? '<' !'=' ( <<list_element Lifetime>>*
                                                   <<list_element (!(identifier ('='|':')) !'>' TypeReference)>>*
-                                                  <<list_element (!'>' (BlockExpr | LitExpr | &('-' LitExpr) UnaryExpr))>>*
+                                                  <<list_element (!'>' ConstExpr)>>*
                                                   <<list_element AssocTypeBinding>>*) '>' { pin = 3 }
+
+ConstExpr ::= (BlockExpr | LitExpr | &('-' LitExpr) UnaryExpr) {
+  implements = "org.rust.lang.core.psi.ext.RsInferenceContextOwner"
+  extends = "org.rust.lang.core.psi.ext.RsStubbedElementImpl<?>"
+  stubClass = "org.rust.lang.core.stubs.RsPlaceholderStub"
+  elementTypeFactory = "org.rust.lang.core.stubs.StubImplementationsKt.factory"
+}
+
 AssocTypeBinding ::= identifier (AssocTypeBindingType | AssocTypeBindingBound) {
   implements = [ "org.rust.lang.core.psi.ext.RsNameIdentifierOwner"
                  "org.rust.lang.core.psi.ext.RsReferenceElement" ]
