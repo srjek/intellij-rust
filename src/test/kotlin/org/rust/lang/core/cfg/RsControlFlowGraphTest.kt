@@ -677,12 +677,12 @@ class RsControlFlowGraphTest : RsTestBase() {
         true
         noreturn
         noreturn()
+        Exit
         IF
         IF;
         42
         42;
         BLOCK
-        Exit
     """)
 
     fun `test noreturn complex expr`() = testCFG("""
@@ -701,12 +701,12 @@ class RsControlFlowGraphTest : RsTestBase() {
         1
         noreturn
         noreturn()
+        Exit
         IF
         IF;
         42
         42;
         BLOCK
-        Exit
     """)
 
     fun `test panic macro call inside stmt`() = testCFG("""
@@ -789,6 +789,22 @@ class RsControlFlowGraphTest : RsTestBase() {
         Exit
     """)
 
+    fun `test struct literal dot dot syntax`() = testCFG("""
+        struct S { x: i32, y: i32 }
+        
+        fn main() {
+            S { x, ..s };
+        }
+    """, """
+        Entry
+        x
+        s
+        S { x, ..s }
+        S { x, ..s };
+        BLOCK
+        Exit
+    """)
+
     fun `test lambda expr`() = testCFG("""
         fn foo() {
             let f = |x: i32| { x + 1 };
@@ -821,6 +837,49 @@ class RsControlFlowGraphTest : RsTestBase() {
         x
         y
         x + y
+        BLOCK
+        Exit
+    """)
+
+    fun `test println! macro call`() = testCFG("""
+        fn main() {
+            println!("{} {}", x, y);
+        }
+    """, """
+        Entry
+        x
+        y
+        println!("{} {}", x, y)
+        println!("{} {}", x, y);
+        BLOCK
+        Exit
+    """)
+
+    fun `test vec! macro call`() = testCFG("""
+        fn main() {
+            vec![ S { x }, s1 ];
+        }
+    """, """
+        Entry
+        x
+        S { x }
+        s1
+        vec![ S { x }, s1 ]
+        vec![ S { x }, s1 ];
+        BLOCK
+        Exit
+    """)
+
+    fun `test assert_eq! macro call`() = testCFG("""
+        fn main() {
+            assert_eq!(x, y);
+        }
+    """, """
+        Entry
+        x
+        y
+        assert_eq!(x, y)
+        assert_eq!(x, y);
         BLOCK
         Exit
     """)

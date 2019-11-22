@@ -69,7 +69,7 @@ class RsRealProjectAnalysisTest : RsRealProjectTestBase() {
                 println("Analyzing $path")
                 try {
                     myFixture.testHighlighting(
-                        /* checkWarnings = */ false,
+                        /* checkWarnings = */ true,
                         /* checkInfos = */ false,
                         /* checkWeakWarnings = */ false,
                         file
