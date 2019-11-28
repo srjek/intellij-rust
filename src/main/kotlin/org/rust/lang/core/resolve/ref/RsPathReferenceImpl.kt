@@ -12,14 +12,16 @@ import org.rust.lang.core.psi.ext.*
 import org.rust.lang.core.resolve.*
 import org.rust.lang.core.types.BoundElement
 import org.rust.lang.core.types.Substitution
+import org.rust.lang.core.types.consts.CtConstParameter
+import org.rust.lang.core.types.consts.CtUnknown
 import org.rust.lang.core.types.infer.foldTyInferWith
 import org.rust.lang.core.types.infer.resolve
 import org.rust.lang.core.types.infer.substitute
 import org.rust.lang.core.types.inference
 import org.rust.lang.core.types.regions.ReEarlyBound
-import org.rust.lang.core.types.regions.Region
 import org.rust.lang.core.types.ty.*
 import org.rust.lang.core.types.type
+import org.rust.lang.utils.evaluation.evaluate
 import org.rust.stdext.buildMap
 import org.rust.stdext.intersects
 
@@ -162,7 +164,20 @@ fun <T : RsElement> instantiatePathGenerics(
     val regionParameters = element.lifetimeParameters.map { ReEarlyBound(it) }
     val regionArguments = path.typeArgumentList?.lifetimeList?.map { it.resolve() }
     val regionSubst = regionParameters.zip(regionArguments ?: regionParameters).toMap()
-    val newSubst = Substitution(typeSubst, regionSubst)
+
+    val constParameters = element.constParameters.map { CtConstParameter(it) }
+    val constArguments = path.typeArgumentList?.constExprList?.withIndex()?.map { (i, constExpr) ->
+        val expectedTy = constParameters.getOrNull(i)?.parameter?.typeReference?.type ?: TyUnknown
+        constExpr.expr.evaluate(expectedTy)
+    }
+    val constSubst = element.constParameters.withIndex().associate { (i, param) ->
+        val paramCt = CtConstParameter(param)
+        val value = constArguments?.getOrNull(i) ?:
+            if (areOptionalArgs && constArguments == null) paramCt else CtUnknown
+        paramCt to value
+    }
+
+    val newSubst = Substitution(typeSubst, regionSubst, constSubst)
     return BoundElement(resolved.element, subst + newSubst, assocTypes)
 }
 
