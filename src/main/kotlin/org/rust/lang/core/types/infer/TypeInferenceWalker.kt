@@ -797,7 +797,7 @@ class RsTypeInferenceWalker(
 
     private fun inferLabeledExprType(expr: RsLabeledExpression, baseType: Ty, matchOnlyByLabel: Boolean): Ty {
         val returningTypes = mutableListOf(baseType)
-        val label = expr.labelDecl?.name
+        val label = null // expr.labelDecl?.name
 
         fun collectReturningTypes(element: PsiElement, matchOnlyByLabel: Boolean) {
             element.forEachChild { child ->

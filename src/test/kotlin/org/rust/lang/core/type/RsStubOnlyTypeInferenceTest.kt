@@ -52,4 +52,6 @@ class RsStubOnlyTypeInferenceTest : RsTypificationTestBase() {
           //^ [i32; 2]
         }
     """)
+
+    // TODO
 }
