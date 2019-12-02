@@ -236,6 +236,7 @@ class RsErrorAnnotator : AnnotatorBase(), HighlightRangeExtension {
     private fun checkDotExpr(holder: RsAnnotationHolder, o: RsDotExpr) {
         val field = o.fieldLookup ?: o.methodCall ?: return
         checkReferenceIsPublic(field, o, holder)
+        checkUnstableAttribute(field, o, holder)
         if (field is RsMethodCall) {
             checkNotCallingDrop(field, holder)
         }
@@ -302,6 +303,19 @@ class RsErrorAnnotator : AnnotatorBase(), HighlightRangeExtension {
         error.addToHolder(holder)
     }
 
+    private fun checkUnstableAttribute(ref: RsReferenceElement, o: RsElement, holder: RsAnnotationHolder) {
+        val element = ref.reference.resolve() as? RsOuterAttributeOwner ?: return
+        for (attr in element.queryAttributes.unstableAttributes) {
+            val metaItems = attr.metaItemArgs?.metaItemList ?: continue
+            val featureName = metaItems.singleOrNull { it.name == "feature" }?.value ?: continue
+            val reason = metaItems.singleOrNull { it.name == "reason" }?.value
+            val reasonSuffix = if (reason != null) ": $reason" else ""
+            val feature = CompilerFeature.find(featureName)
+                ?: CompilerFeature(featureName, FeatureState.ACTIVE, null, cache = false)
+            feature.check(holder, o, null, "`$featureName` is unstable$reasonSuffix")
+        }
+    }
+
     private fun checkBaseType(holder: RsAnnotationHolder, type: RsBaseType) {
         if (type.underscore == null) return
         val owner = type.owner.parent
@@ -358,6 +372,7 @@ class RsErrorAnnotator : AnnotatorBase(), HighlightRangeExtension {
         }
 
         checkReferenceIsPublic(path, path, holder)
+        checkUnstableAttribute(path, path, holder)
     }
 
     private fun checkConstParameter(holder: RsAnnotationHolder, constParameter: RsConstParameter) {
