@@ -10,13 +10,12 @@ import com.intellij.openapi.util.Computable
 import com.intellij.openapiext.Testmark
 import com.intellij.psi.util.CachedValueProvider
 import com.intellij.psi.util.CachedValuesManager
-import com.intellij.psi.util.PsiTreeUtil
-import com.intellij.psi.util.parentOfType
 import org.jetbrains.annotations.TestOnly
 import org.rust.lang.core.psi.*
 import org.rust.lang.core.psi.ext.*
 import org.rust.lang.core.resolve.*
 import org.rust.lang.core.resolve.ref.MethodResolveVariant
+import org.rust.lang.core.resolve.ref.resolvePathRaw
 import org.rust.lang.core.types.*
 import org.rust.lang.core.types.consts.Const
 import org.rust.lang.core.types.consts.CtConstParameter
@@ -25,6 +24,7 @@ import org.rust.lang.core.types.consts.CtUnknown
 import org.rust.lang.core.types.regions.Region
 import org.rust.lang.core.types.ty.*
 import org.rust.lang.utils.RsDiagnostic
+import org.rust.lang.utils.evaluation.tryEvaluate
 import org.rust.lang.utils.snapshot.CombinedSnapshot
 import org.rust.lang.utils.snapshot.Snapshot
 import org.rust.openapiext.recursionGuard
@@ -180,11 +180,13 @@ class RsInferenceContext(
                 is RsConstant -> element.typeReference?.type to element.expr
                 is RsArrayType -> TyInteger.USize to element.expr
                 is RsConstExpr -> {
-                    val constArguments = element.parentOfType<RsTypeArgumentList>()?.constExprList.orEmpty()
+                    val constArguments = element.ancestorStrict<RsTypeArgumentList>()?.constExprList.orEmpty()
                     val currIdx = constArguments.indexOf(element)
                     val constType = if (currIdx != -1) {
-                        val decl = PsiTreeUtil.getParentOfType(element, RsPath::class.java, RsMethodCall::class.java)
-                            ?.reference?.resolve() as? RsGenericDeclaration
+                        val decl = element.ancestorStrict<RsPath>()
+                            ?.let { resolvePathRaw(it, lookup) }
+                            ?.singleOrNull()
+                            ?.element as? RsGenericDeclaration
                         val constParameter = decl?.constParameters?.getOrNull(currIdx)
                         constParameter?.typeReference?.type ?: TyUnknown
                     } else {
@@ -557,7 +559,7 @@ class RsInferenceContext(
                 constUnificationTable.findValue(const) ?: const
             } else {
                 const
-            }
+            }.tryEvaluate()
     }
 
     fun <T : TypeFoldable<T>> resolveTypeVarsIfPossible(value: T): T {
@@ -575,7 +577,7 @@ class RsInferenceContext(
         override fun foldConst(const: Const): Const {
             if (!const.hasCtInfer) return const
             val res = shallowResolve(const)
-            return res.superFoldWith(this)
+            return res.superFoldWith(this).tryEvaluate()
         }
     }
 
@@ -599,7 +601,7 @@ class RsInferenceContext(
                 constUnificationTable.findValue(const) ?: CtUnknown
             } else {
                 const
-            }
+            }.tryEvaluate()
     }
 
     fun typeVarForParam(ty: TyTypeParameter): Ty = TyInfer.TyVar(ty)

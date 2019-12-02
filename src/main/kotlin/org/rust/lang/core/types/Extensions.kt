@@ -12,7 +12,6 @@ import com.intellij.psi.util.CachedValue
 import com.intellij.psi.util.CachedValueProvider.Result
 import com.intellij.psi.util.CachedValuesManager
 import com.intellij.psi.util.PsiModificationTracker
-import com.intellij.psi.util.parentOfType
 import org.rust.lang.core.cfg.ControlFlowGraph
 import org.rust.lang.core.psi.*
 import org.rust.lang.core.psi.ext.*
@@ -43,7 +42,7 @@ private fun <T> RsInferenceContextOwner.createResult(value: T): Result<T> {
 
         // Invalidate cached value of const expr on PSI change in the parent.
         this is RsConstExpr -> {
-            val parentModificationTracker = parentOfType<RsModificationTrackerOwner>()?.modificationTracker
+            val parentModificationTracker = ancestorStrict<RsModificationTrackerOwner>()?.modificationTracker
             Result.create(value, listOfNotNull(structureModificationTracker, parentModificationTracker))
         }
 

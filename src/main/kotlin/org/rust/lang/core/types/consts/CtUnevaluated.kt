@@ -9,7 +9,7 @@ import org.rust.lang.core.types.infer.TypeFolder
 import org.rust.lang.core.types.infer.TypeVisitor
 import org.rust.lang.utils.evaluation.ConstExpr
 
-data class CtUnevaluated(val expr: ConstExpr<*>) : Const() {
+data class CtUnevaluated(val expr: ConstExpr<*>) : Const(expr.flags) {
     override fun superFoldWith(folder: TypeFolder): Const =
         CtUnevaluated(expr.foldWith(folder))
 

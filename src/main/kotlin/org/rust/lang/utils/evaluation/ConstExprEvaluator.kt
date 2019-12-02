@@ -15,6 +15,8 @@ import org.rust.lang.core.types.consts.Const
 import org.rust.lang.core.types.consts.CtUnevaluated
 import org.rust.lang.core.types.consts.CtUnknown
 import org.rust.lang.core.types.consts.CtValue
+import org.rust.lang.core.types.infer.hasCtConstParameters
+import org.rust.lang.core.types.infer.hasCtInfer
 import org.rust.lang.core.types.ty.Ty
 import org.rust.lang.core.types.ty.TyBool
 import org.rust.lang.core.types.ty.TyInteger
@@ -25,6 +27,13 @@ fun RsExpr.evaluate(
     expectedTy: Ty = type,
     pathExprResolver: ((RsPathExpr) -> RsElement?)? = defaultExprPathResolver
 ): Const = toConstExpr(expectedTy, pathExprResolver)?.evaluate() ?: CtUnknown
+
+fun Const.tryEvaluate(): Const =
+    if (this is CtUnevaluated && !expr.hasCtInfer && !expr.hasCtConstParameters) {
+        expr.evaluate()
+    } else {
+        this
+    }
 
 fun ConstExpr<*>.evaluate(): Const {
     val expr = when (expectedTy) {
